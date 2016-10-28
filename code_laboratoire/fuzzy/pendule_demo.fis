@@ -1,0 +1,35 @@
+[System]
+Name='pendule_demo'
+Type='mamdani'
+Version=2.0
+NumInputs=2
+NumOutputs=1
+NumRules=2
+AndMethod='min'
+OrMethod='max'
+ImpMethod='prod'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='theta'
+Range=[-180 180]
+NumMFs=1
+MF1='Neg':'trapmf',[-180 -50 20 180]
+
+[Input2]
+Name='thetaDot'
+Range=[-1000 1000]
+NumMFs=1
+MF1='Neg':'trapmf',[-1000 -200 200 1000]
+
+[Output1]
+Name='Force'
+Range=[-10 10]
+NumMFs=2
+MF1='Neg':'trapmf',[-20 -10 -3 0]
+MF2='Pos':'trapmf',[0 3 10 20]
+
+[Rules]
+1 1, 1 (0.5) : 1
+1 1, 2 (0.5) : 1
