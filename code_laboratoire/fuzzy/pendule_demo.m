@@ -37,7 +37,7 @@ if SHOW_PLOTS
 
   ## Generate three-dimensional plots for Rule Base.
   ## WARNING: very slow to produce figure!
-  % gensurf(a,[1 2],1); view([140 37.5]);
+   %gensurf(a,[1 2],1); view([140 37.5]);
 
   ## Show rules in human-readable form
   showrule(a);
@@ -45,7 +45,7 @@ endif
 
 ## Define the maximum number of simulation steps
 ## WARNING: the higher the number, the longer the simulation!
-NSTEP_MAX=100;
+NSTEP_MAX=1000;
 
 ## Set to 0 to have a fixed initial state (pole angle at 20 degres),
 ## otherwise, pole angle will be randomly chosen in the interval [-20, 20].
