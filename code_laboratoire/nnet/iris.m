@@ -52,17 +52,25 @@ load 'iris.mat'
 ## TODO : Apply any relevant transformation to the data
 ## (e.g. filtering, normalization, dimensionality reduction)
 
+% nous procedons a un message des valeurs en procedant a un normalisation du data 
+% selon la colonne. 
+% le prof normalise les valeurs de -1 a 1. 
+for i=1:4
+  range = max(data)(i)-min(data)(i)
+  data(:,i) = (data(:,i)-min(data)(i))/range
+end
+
 ## Create neural network
 ## TODO : Tune the number and size of hidden layers 
 nbHiddenNodes = 1;
 nbInputNodes = size(data,2);
-nbOutputNodes = size(target,2);
+nbOutputNodes = size(target,2;
 net = fann_create([nbInputNodes, nbHiddenNodes, nbOutputNodes]);
 
 ## Define training parameters
 ## TODO : Tune the training parameters
 parameters = struct( "TrainingAlgorithm", 'incremental', ...
-                     "LearningRate", 0.01, ...
+                     "LearningRate", 0.1, ...
                      "ActivationHidden", 'Sigmoid', ...
                      "ActivationOutput", 'Sigmoid', ...
                      "TrainErrorFunction", 'linear', ...

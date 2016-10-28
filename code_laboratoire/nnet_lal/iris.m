@@ -32,63 +32,56 @@
 ## Load the neural network toolbox
 pkg load octave-fann
 
-## XOR data set
-data = [0,0; 0,1; 1,0; 1,1];
-target = [0; 1; 1; 0];
+## Avoid Octave thinking this is a function file
+1;
+
+###############################################
+# Define helper functions here
+###############################################
+
+
+
+###############################################
+# Define code logic here
+###############################################
+
+## Load iris data set from file
+## TODO: Analyze the input data
+load 'iris.mat'
+
+## TODO : Apply any relevant transformation to the data
+## (e.g. filtering, normalization, dimensionality reduction)
 
 ## Create neural network
-nbInputNodes = size(data,2); % 2 input nodes 
-nbHiddenNodes = 2; 
-nbOutputNodes = size(target,2); % 1 output node
+## TODO : Tune the number and size of hidden layers 
+nbHiddenNodes = 1;
+nbInputNodes = size(data,2);
+nbOutputNodes = size(target,2);
 net = fann_create([nbInputNodes, nbHiddenNodes, nbOutputNodes]);
 
 ## Define training parameters
-
-## WARNING: Incremental learning doesn't seem to work for this example!
-%parameters = struct( "TrainingAlgorithm", 'incremental', ...
-%                     "LearningRate", 0.1, ...
-%                     "ActivationHidden", 'Sigmoid', ...
-%                     "ActivationOutput", 'Sigmoid', ...
-%                     "TrainErrorFunction", 'linear', ...
-%                     "Momentum", 0.5);
-
-parameters = struct( "TrainingAlgorithm", 'rprop', ...
-                     "LearningRate", 0.7, ...
+## TODO : Tune the training parameters
+parameters = struct( "TrainingAlgorithm", 'incremental', ...
+                     "LearningRate", 0.01, ...
                      "ActivationHidden", 'Sigmoid', ...
                      "ActivationOutput", 'Sigmoid', ...
-                     "ActivationSteepnessHidden", 0.5, ...
-                     "ActivationSteepnessOutput", 0.5, ...
-                     "TrainErrorFunction", 'TanH', ...
-                     "RPropIncreaseFactor", 1.2, ...
-                     "RPropDecreaseFactor", 0.5, ...
-                     "RPropDeltaMin", 0.0, ...
-                     "RPropDeltaMax", 50.0);
-
-%parameters = struct( "TrainingAlgorithm", 'qprop', ...
-%                     "LearningRate", 0.7, ...
-%                     "ActivationHidden", 'Linear', ...
-%                     "ActivationOutput", 'Sigmoid', ...
-%                     "ActivationSteepnessHidden", 0.5, ...
-%                     "ActivationSteepnessOutput", 0.5, ...
-%                     "TrainErrorFunction", 'TanH', ...
-%                     "QuickPropDecay", -0.0001, ...
-%                     "QuickPropMu", 1.75);
-                     
+                     "TrainErrorFunction", 'linear', ...
+                     "Momentum", 0.1);
 fann_set_parameters(net, parameters);
 
 ## Perform training
+## TODO : Tune the maximum number of iterations and desired error 
 train_data = struct("input", data, "target", target);
-train_data = fann_shuffle_data(train_data);
-fann_train(net, train_data, 'MaxIterations', 1000, 
-                            'DesiredError', 0.0001, 
+fann_train(net, train_data, 'MaxIterations', 10, 
+                            'DesiredError', 0.1, 
                             'IterationsBetweenReports', 1);
 
 ## Save network and scaling parameters to disk
-fann_save(net,"xor.net");
+fann_save(net,"iris.net");
 
 ## Test network (loading from disk)
-net = fann_create("xor.net");
+net = fann_create("iris.net");
 res = fann_run(net, data);
 
 ## Print the number of classification errors from the training data
-err = sum(abs(round(res)-target))
+err = sum(abs(compet(res)-compet(target)))
