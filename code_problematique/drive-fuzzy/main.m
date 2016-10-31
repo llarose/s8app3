@@ -48,7 +48,7 @@ function action = drive(state,a,b)
     gear--;
   endif
  
-  action.accel  = 1;
+  action.accel  = 0.7;
   action.brake  = 0;
   action.gear   = gear;
   action.steer  = steer;
