@@ -30,15 +30,26 @@ function show_MFB(fis)
     showrule(fis);
 end
 
+function show_MFC(fis)
+    plotmf(fis,'input',1);
+    plotmf(fis,'input',2);
+    plotmf(fis,'output',1);
+    plotmf(fis,'output',2);
+    showrule(fis);
+end
+
 ###############################################
 # Define code logic here
 ###############################################
 
-function action = drive(state,a,b)
-  steer = evalfis([state.angle, state.trackPos], a, 101, false);
-  shift = evalfis([state.rpm], b, 101, false)
-  #accel = evalfis([state.track(10)], c, 101, false); 
+function action = drive(state,a,b,c)
   
+  steer  = evalfis([state.angle, state.trackPos], a, 101, false);
+  shift  = evalfis([state.rpm], b, 101, false)
+  
+  speed = sqrt((state.speedX^2)+(state.speedY^2));
+  result = evalfis([speed,state.track(10)], c, 101, false); 
+  result
   gear = state.gear;
   if gear == 0
     gear = 1;
@@ -48,8 +59,8 @@ function action = drive(state,a,b)
     gear--;
   endif
  
-  action.accel  = 0.7;
-  action.brake  = 0;
+  action.accel  = result(1);
+  action.brake  = result(2);
   action.gear   = gear;
   action.steer  = steer;
 endfunction
@@ -64,10 +75,11 @@ unwind_protect
 
   ## FUZZY LOGIC
   a=readfis('racecarctrl.fis'); 
-  b=readfis('speedcarctrl.fis'); 
-  show_MFA(a);
-  show_MFB(b);
-
+  b=readfis('speedcarctrl.fis');
+  c=readfis('accelnbrakectrl.fis'); 
+  #show_MFA(a);
+  #show_MFB(b);
+  show_MFC(c);
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.
   ## - Simulator is shutdown using the menu (press ESC during the simulation).
@@ -85,9 +97,9 @@ unwind_protect
 	
     ## IMPORTANT: Because the fuzzy inference is slow with the toolbox, we may need to drop states
     ## Use STATE_DROP_RATE = 1 to disable state dropping.
-		STATE_DROP_RATE = 3;
+		STATE_DROP_RATE = 2;
 		if mod(counter,STATE_DROP_RATE) == 0 || counter == 1
-      action = drive(state,a,b);
+      action = drive(state,a,b,c);
 		else
 			action = lastAction;
 		endif
