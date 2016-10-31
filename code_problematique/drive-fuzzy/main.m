@@ -1,3 +1,8 @@
+close all
+clear all
+clc
+more off
+
 ## Load the fuzzy logic toolbox
 pkg load fuzzy-logic-toolkit
 
@@ -12,26 +17,40 @@ SHOW_PLOTS=1;
 ###############################################
 ## Set to 0 to disable plotting
 
-function show_MF(a)
-    ## Display fuzzy sets for the linguistic variable "theta".
-    plotmf(a,'input',1);
-    ## Display fuzzy sets for the linguistic variable "theta_dot".
-    plotmf(a,'input',2);
-    ## Display fuzzy sets for the linguistic variable "Force".
-    plotmf(a,'output',1);
+function show_MFA(fis)
+    plotmf(fis,'input',1);
+    plotmf(fis,'input',2);
+    plotmf(fis,'output',1);
     % gensurf(a,[1 2],1); view([140 37.5]);
-    showrule(a);
+    showrule(fis);
+end
+function show_MFB(fis)
+    plotmf(fis,'input',1);
+    plotmf(fis,'output',1);
+    showrule(fis);
 end
 
 ###############################################
 # Define code logic here
 ###############################################
 
-function action = drive(state,a)
-  [steer]=evalfis([state.angle, state.trackPos], a, 101, false);
-  action.accel  = 0.4;
+function action = drive(state,a,b)
+  steer = evalfis([state.angle, state.trackPos], a, 101, false);
+  shift = evalfis([state.rpm], b, 101, false)
+  #accel = evalfis([state.track(10)], c, 101, false); 
+  
+  gear = state.gear;
+  if gear == 0
+    gear = 1;
+  elseif(shift > 0.5 && gear < 6)
+    gear++;
+  elseif(shift < 0.5 && gear > 1)
+    gear--;
+  endif
+ 
+  action.accel  = 1;
   action.brake  = 0;
-  action.gear   = 1;
+  action.gear   = gear;
   action.steer  = steer;
 endfunction
 
@@ -45,7 +64,9 @@ unwind_protect
 
   ## FUZZY LOGIC
   a=readfis('racecarctrl.fis'); 
-  show_MF(a);
+  b=readfis('speedcarctrl.fis'); 
+  show_MFA(a);
+  show_MFB(b);
 
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.
@@ -66,7 +87,7 @@ unwind_protect
     ## Use STATE_DROP_RATE = 1 to disable state dropping.
 		STATE_DROP_RATE = 3;
 		if mod(counter,STATE_DROP_RATE) == 0 || counter == 1
-      action = drive(state,a);
+      action = drive(state,a,b);
 		else
 			action = lastAction;
 		endif
