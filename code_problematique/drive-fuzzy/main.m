@@ -44,12 +44,39 @@ end
 
 function action = drive(state,a,b,c)
   
-  steer  = evalfis([state.angle, state.trackPos], a, 101, false);
-  shift  = evalfis([state.rpm], b, 101, false)
   
-  speed = sqrt((state.speedX^2)+(state.speedY^2));
+  steer  = evalfis([state.angle, state.trackPos], a, 101, false);
+  shift  = 0.5;
+  shift  = evalfis([state.rpm], b, 101, false);
+  
+  speed  = sqrt((state.speedX^2)+(state.speedY^2));
   result = evalfis([speed,state.track(10)], c, 101, false); 
-  result
+  
+  if(isnan(steer))
+    disp('steer is NAN');
+    disp(state.track(10));
+    disp(steer);
+  end
+  if(isnan(shift))
+    disp('shift is NAN');
+    disp(state.rpm);
+  end
+  if(isnan(speed))
+    disp('steer is NAN');
+    disp(state.track(10));
+    disp(state.speed);
+  end
+  if(isnan(result(1)))
+    disp('accel is NAN');
+    disp(state.track(10));
+    disp(result(1));
+  end
+  if(isnan(result(2)))
+    disp('brake is NAN');
+    disp(state.track(10));
+    disp(result(2));
+  end
+  
   gear = state.gear;
   if gear == 0
     gear = 1;
@@ -78,7 +105,7 @@ unwind_protect
   b=readfis('speedcarctrl.fis');
   c=readfis('accelnbrakectrl.fis'); 
   #show_MFA(a);
-  #show_MFB(b);
+  show_MFB(b);
   show_MFC(c);
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.

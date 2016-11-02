@@ -97,7 +97,7 @@ endfunction
 
 # Uncomment below to drive manually the car on a specific track
 mode = 'human';
-trackNames = {'forza'};
+trackNames = {'g-track-3'};
 nbLaps = 1;
 
 # Uncomment below to drive the car by a bot on a specific track

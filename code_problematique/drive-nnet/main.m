@@ -16,7 +16,7 @@
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-## IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+## IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECTP
 ## INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
 ## NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
 ## OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
@@ -26,6 +26,11 @@
 ##
 
 ## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
+## Université de Sherbrooke, APP3 S8GIA, A2014
+## Octave 3.8.2
+clear all 
+clc
+more off
 
 ## Load the neural-network toolbox
 pkg load octave-fann
@@ -33,22 +38,156 @@ pkg load octave-fann
 ## Load the TORCS simulator functions for drive/control applications
 source ../torcs_drive.m
 
+## DEFINES
+TRAIN = 1;
+
 ###############################################
 # Define helper functions here
 ###############################################
 
+## usage: OUT = scale_data(IN, MINMAX)
+##
+## Scale an input vector or matrix so that the values 
+## are normalized in the range [-1, 1].
+##
+## Input:
+## - IN, the input vector or matrix.
+##
+## Output:
+## - OUT, the scaled input vector or matrix.
+## - MINMAX, the original range of IN, used later as scaling parameters. 
+##
+function [out, minmax] = scale_data(in, inMinMax)
+	
+  N = size(in,1);
+  if inMinMax==0 
+    minmax = [min(in)', max(in)'];
+  else 
+    minmax = [inMinMax];
+  end
+    minD = repmat(minmax(:,1),1,N)';
+    maxD = repmat(minmax(:,2),1,N)';
+    out = 2.*(in-minD)./(maxD-minD) - 1;   
+endfunction
+
+## usage: OUT = descale_data(IN, MINMAX)
+##
+## Descale an input vector or matrix so that the values 
+## are denormalized from the range [-1, 1].
+##
+## Input:
+## - IN, the input vector or matrix.
+## - MINMAX, the original range of IN. 
+##
+## Output:
+## - OUT, the descaled input vector or matrix.
+##
+function out = descale_data(in,minmax)
+	N = size(in,1);
+	minD = repmat(minmax(:,1),1,N)';
+	maxD = repmat(minmax(:,2),1,N)';
+	
+	out = ((in + 1)/2).*(maxD-minD) + minD;
+endfunction
 
 ###############################################
 # Define code logic here
 ###############################################
 
-## TODO: Load trained neural network
-## see function fann_create
+if TRAIN==1
+  ## Load trained neural network
 
+  load 'dataset/all.mat';
+
+  %load images
+  ## d = dir(strcat(matpath,'*.mat'));
+  ## nData = length(d);
+  ## filenames=[];
+  ## for i=1:length(d)
+  ##   filenames = [filenames;strcat(matpath, d(i).name)];
+  ## end
+
+  ## for i=1:length(filenames)
+  ##  file = filenames(i,:);
+  ##  load(file,'-mat');
+  ##  db = [db, data];
+  ##end
+
+  ## for i=1:length(files)
+  ##  filename = [p files(i) '/n'];
+  ##  disp(filename);
+  ## endfor
+
+  ## Create neural network
+  nbInputNodes  = 6; #Angle, RPM, SpeedX, Track, TrackPos, gear 
+  nbHiddenNodes = 5*4;
+  nbOutputNodes = 4; #brake, accel, gear, steer
+  net = fann_create([nbInputNodes, nbHiddenNodes, nbOutputNodes]);
+
+  ## Define training parameters
+  %parameters = struct( "TrainingAlgorithm", 'incremental', ...
+  %                     "LearningRate", 0.1, ...
+  %                     "ActivationHidden", 'SigmoidSymmetric', ...
+  %                     "ActivationOutput", 'SigmoidSymmetric', ...
+  %                     "TrainErrorFunction", 'linear', ...
+  %                     "Momentum", 0.9);
+                       
+  parameters = struct( "TrainingAlgorithm", 'rprop', ...
+                       "LearningRate", 0.4, ...
+                       "ActivationHidden", 'SigmoidSymmetric', ...
+                       "ActivationOutput", 'SigmoidSymmetric', ...
+                       "ActivationSteepnessHidden", 0.4, ...
+                       "ActivationSteepnessOutput", 0.5, ...
+                       "TrainErrorFunction", 'linear', ...
+                       "RPropIncreaseFactor", 1.2, ...
+                       "RPropDecreaseFactor", 0.5, ...
+                       "RPropDeltaMin", 0.0, ...
+                       "RPropDeltaMax", 50.0);
+
+  #parameters = struct( "TrainingAlgorithm", 'qprop', ...
+  #                     "LearningRate", 0.7, ...
+  #                     "ActivationHidden", 'SigmoidSymmetric', ...
+  #                     "ActivationOutput", 'SigmoidSymmetric', ...
+  #                     "ActivationSteepnessHidden", 0.5, ...
+  #                     "ActivationSteepnessOutput", 0.5, ...
+  #                    "TrainErrorFunction", 'linear', ...
+  #                    "QuickPropDecay", -0.0001, ...
+  #                    "QuickPropMu", 1.75);
+  fann_set_parameters(net, parameters);
+
+  for i=1:length(data)
+  ## formating data from recorded files
+    stimulus(i,:) = [data(i).angle, ...
+                     data(i).rpm, ...
+                     sqrt(data(i).speedX^2+data(i).speedY^2), ...
+                     data(i).track(10),...
+                     data(i).trackPos, ...
+                     data(i).gear];
+                    
+    expected(i,:) = [data(i).accelCmd, ...
+                     data(i).brakeCmd, ...
+                     data(i).gearCmd,...
+                     data(i).steerCmd];
+                         
+  end
+  ## Scale data and target dimensions to the proper range in [-1 1]
+  [data,   inScale]    = scale_data(stimulus,0);
+  [target, outScale]   = scale_data(expected,0);
+  scalingParameters  = struct("inScale", inScale, "outScale", outScale);
+  
+  ## Perform training
+  train_data = struct("input", data, "target", target);
+  train_data = fann_shuffle_data(train_data);
+  fann_train(net, train_data, 'MaxIterations', 2500, 'DesiredError', 0.0008, 'IterationsBetweenReports', 100);
+
+  ## Save network and scaling parameters
+  fann_save(net,"torcs.net");
+  save("-mat-binary","torcs-scale-params.mat", "scalingParameters");
+ 
+endif
 ## NOTE: the unwind_protect block is necessary to shutdown the simulator
 ##       if any error occurs in the code. DO NOT REMOVE IT!
 unwind_protect
-
   ## Connect to simulation server.
   ## NOTE: This function is defined in the file torcs_drive.m
   startSimulator(mode='gui');
@@ -58,6 +197,10 @@ unwind_protect
   ## - Simulator is shutdown using the menu (press ESC during the simulation).
   ## - Octave is terminated by CTRL-C on the Command Window.
 	counter = 1;
+  
+  net = fann_create("torcs.net");
+  load("torcs-scale-params.mat");
+  
 	while 1
     ## Grab the car state from the simulator.
     ## NOTE: This function is defined in the file torcs_drive.m
@@ -66,53 +209,35 @@ unwind_protect
 			## Simulator is shutting down or no longer running, so exit.
 			break;
 		endif
-	
-		## TODO: construct an input vector from the car state, a structure with the following fields
-		##     Adapted from the Software Manual of the Car Racing Competition @ WCCI2008
-		##     http://julian.togelius.com/Loiacono2008The.pdf
-		##
-		##      angle, the angle between the car direction and the direction of the track axis. Range of [-pi,pi]. [rad]
-		##      curLapTime, the time elapsed during current lap. [seconds]
-		##      damage, the current damage of the car (the higher is the value the higher is the damage). [points]
-		##      distFromStart, the distance of the car from the start line along the track line. [meters]
-		##      distRaced, the distance covered by the car from the beginning of the race. [meters]
-		##      fuel, the current fuel level. [liters]
-		##      gear, the current gear. -1 is reverse, 0 is neutral and the forward gear can range from 1 to 6.
-		##      lastLapTime, the time to complete the last lap. [seconds]
-		##      opponents, a vector of 18 sensors that detects the opponent distance (range is [0,100]) 
-		##                 within a specific 10 degrees sector: each sensor covers 10 degrees, from -pi/2 to +pi/2 
-		##                 in front of the car. [meters]
-		##      racePos, the position in the race with to respect to other cars.
-		##      rpm, the number of rotation per minute of the car engine in the range [2000, 7000]. [rpm]
-		##      speedX, the speed of the car along the longitudinal axis of the car. [km/h]
-		##      speedY, the speed of the car along the transverse axis of the car. [km/h]
-		##      track, a vector of 19 range finder sensors: each sensors represents the distance between the track 
-		##             edge and the car. Sensors are oriented every 10 degrees from -pi/2 and +pi/2 in front of the car.
-		##             Distance are in meters within a range of 100 meters. When the car is outside of the 
-		##             track (i.e., pos is less than -1 or greater than 1), these values are not reliable! [meters]
-		##      trackPos, the distance between the car and the track axis. The value is normalized w.r.t to the track 
-		##             width: it is 0 when car is on the axis, -1 when the car is on the right edge of the track and +1
-		##             when it is on the left edge of the car. Values greater than 1 or smaller than -1 means that the 
-		##             car is outside of the track.
-		##      wheelSpinVel, a vector of 4 sensors representing the rotation speed of wheels. [rad/s]
-	
-		## TODO: evaluate the output of the neural-network for the given input 
-		## see function fann_run
-
-		## TODO: construct the action, a structure with the following fields:
-		##     Adapted from the Software Manual of the Car Racing Competition @ WCCI2008
-		##     http://julian.togelius.com/Loiacono2008The.pdf
-		##
-		##     accel, the virtual gas pedal (0 means no gas, 1 full gas), in the range [0,1].
-		##     brake, the virtual brake pedal (0 means no brake, 1 full brake), in the range [0,1].
-		##     gear, the gear value. -1 is reverse, 0 is neutral and the forward gear can range from 1 to 6.
-		##     steer, the steering value. -1 and +1 means respectively full left and right, that corresponds to an angle of 0.785398 rad.
-		
+    
+    ## Test network (loading from disk)
+    data =[state.angle, ...
+           state.rpm, ...
+           sqrt(state.speedX^2+state.speedY^2), ...
+           state.track(10),...
+           state.trackPos,...
+           state.gear];
+     
+    data(:,1) = scale_data(data(:,1),scalingParameters.inScale(1,:));
+    data(:,2) = scale_data(data(:,2),scalingParameters.inScale(2,:));
+    data(:,3) = scale_data(data(:,3),scalingParameters.inScale(3,:));
+    data(:,4) = scale_data(data(:,4),scalingParameters.inScale(4,:));
+    data(:,5) = scale_data(data(:,5),scalingParameters.inScale(5,:));
+    data(:,6) = scale_data(data(:,6),scalingParameters.inScale(6,:));
+    
+    res = fann_run(net, data); 
+    
+    accel = descale_data(res(1), scalingParameters.outScale(1,:));
+    brake = descale_data(res(2), scalingParameters.outScale(2,:));
+    gear  = descale_data(res(3), scalingParameters.outScale(3,:));
+    steer = descale_data(res(4), scalingParameters.outScale(4,:));
+    
+    gear
     action = struct();
-		action.steer = 0;
-		action.gear = 0;
-		action.accel = 0;
-		action.brake = 0;
+	  action.steer = steer;
+		action.gear = round(gear)
+		action.accel = accel;
+		action.brake = brake;
 	
     ## Send an action to be executed by the simulator.
     ## NOTE: This function is defined in the file torcs_drive.m

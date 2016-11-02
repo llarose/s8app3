@@ -1,0 +1,47 @@
+[System]
+Name='pendule_demo'
+Type='sugeno'
+Version=2.0
+NumInputs=2
+NumOutputs=1
+NumRules=9
+AndMethod='min'
+OrMethod='max'
+ImpMethod='prod'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='theta'
+Range=[-40 40]
+NumMFs=3
+MF1='Neg':'trapmf',[-68.8 -43.2 -29.1005291005291 -0.688]
+MF2='Milieu':'trimf',[-20.2116402116402 0 19.6]
+MF3='Pos':'trapmf',[1.32 28.4656084656085 44.1 69.7]
+
+[Input2]
+Name='thetaDot'
+Range=[-100 100]
+NumMFs=3
+MF1='Neg':'trapmf',[-172 -108 -37.8306878306878 -1.85]
+MF2='Milieu':'trimf',[-39.4 0 39.9470899470899]
+MF3='Pos':'trapmf',[2.38 37.3015873015873 108 172]
+
+[Output1]
+Name='Force'
+Range=[-10 10]
+NumMFs=3
+MF1='Neg':'constant',[-8]
+MF2='Milieu':'constant',[0]
+MF3='Pos':'constant',[8]
+
+[Rules]
+1 1, 1 (1) : 1
+1 2, 1 (1) : 1
+1 3, 3 (1) : 1
+2 1, 1 (1) : 1
+2 2, 2 (1) : 1
+2 3, 3 (1) : 1
+3 1, 1 (1) : 1
+3 2, 3 (1) : 1
+3 3, 3 (1) : 1

@@ -13,11 +13,11 @@ DefuzzMethod='centroid'
 
 [Input1]
 Name='rpm'
-Range=[0 9000]
+Range=[0 12000]
 NumMFs=3
-MF1='Low':trapmf,[-1 2000 2500 2550]
-MF2='Medium':trapmf,[2500 2550 5250 5300]
-MF3='High':trapmf,[5250 5300 8000 9001]
+MF1='Low':trapmf,[-1 0 3000 3050]
+MF2='Medium':trapmf,[3000 3050 9000 9050]
+MF3='High':trapmf,[9000 9050 12000 12050]
 
 [Output1]
 Name='Gear'
