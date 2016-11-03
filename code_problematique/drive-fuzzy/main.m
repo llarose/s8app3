@@ -105,8 +105,8 @@ unwind_protect
   b=readfis('speedcarctrl.fis');
   c=readfis('accelnbrakectrl.fis'); 
   #show_MFA(a);
-  show_MFB(b);
-  show_MFC(c);
+  #show_MFB(b);
+  #show_MFC(c);
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.
   ## - Simulator is shutdown using the menu (press ESC during the simulation).

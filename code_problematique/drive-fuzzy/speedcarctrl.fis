@@ -16,8 +16,8 @@ Name='rpm'
 Range=[0 12000]
 NumMFs=3
 MF1='Low':trapmf,[-1 0 3000 3050]
-MF2='Medium':trapmf,[3000 3050 9000 9050]
-MF3='High':trapmf,[9000 9050 12000 12050]
+MF2='Medium':trapmf,[3000 3050 8000 8050]
+MF3='High':trapmf,[8000 8050 12000 12050]
 
 [Output1]
 Name='Gear'
