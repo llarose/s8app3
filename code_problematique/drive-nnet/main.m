@@ -1,4 +1,4 @@
-## Copyright (c) 2014, Simon Brodeur
+## Copyright (c) 2016, Simon Brodeur
 ## All rights reserved.
 ## 
 ## Redistribution and use in source and binary forms, with or without modification,
@@ -26,9 +26,18 @@
 ##
 
 ## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
+
+## Modified by : Louis-Antoine Larose <louis-antoine.larose@usherbrooke.ca>
+##               Maxime Gagne <maxime.gagne@usherbrooke.ca>
+##               Louis Pelletier <louis.pelletier@usherbrooke.ca>
+
+## Description: Solution DRIVE- NNET
+##              the neural network is based on the result from the drive-fuzzy
+
 ## Université de Sherbrooke, APP3 S8GIA, A2014
-## Octave 3.8.2
+## Octave 4.0.0
 clear all 
+close all
 clc
 more off
 
@@ -38,20 +47,23 @@ pkg load octave-fann
 ## Load the TORCS simulator functions for drive/control applications
 source ../torcs_drive.m
 
-## DEFINES
-TRAIN = 1;
+## FLAGS
+TRAIN = 0; # This flag enables the training. 
 
-###############################################
-# Define helper functions here
-###############################################
+######################
+# Utilitary function #
+######################
 
 ## usage: OUT = scale_data(IN, MINMAX)
+## Authors: Simon Brodeur 
+## Modified by : Louis-Antoine Larose
 ##
 ## Scale an input vector or matrix so that the values 
 ## are normalized in the range [-1, 1].
 ##
 ## Input:
 ## - IN, the input vector or matrix.
+## - inMinMax, force the values to use for scaling. 
 ##
 ## Output:
 ## - OUT, the scaled input vector or matrix.
@@ -71,6 +83,7 @@ function [out, minmax] = scale_data(in, inMinMax)
 endfunction
 
 ## usage: OUT = descale_data(IN, MINMAX)
+## Authors: Simon Brodeur 
 ##
 ## Descale an input vector or matrix so that the values 
 ## are denormalized from the range [-1, 1].
@@ -95,42 +108,15 @@ endfunction
 ###############################################
 
 if TRAIN==1
-  ## Load trained neural network
-
+  ## Load trained neural networt
   load 'dataset/all.mat';
 
-  %load images
-  ## d = dir(strcat(matpath,'*.mat'));
-  ## nData = length(d);
-  ## filenames=[];
-  ## for i=1:length(d)
-  ##   filenames = [filenames;strcat(matpath, d(i).name)];
-  ## end
-
-  ## for i=1:length(filenames)
-  ##  file = filenames(i,:);
-  ##  load(file,'-mat');
-  ##  db = [db, data];
-  ##end
-
-  ## for i=1:length(files)
-  ##  filename = [p files(i) '/n'];
-  ##  disp(filename);
-  ## endfor
-
   ## Create neural network
-  nbInputNodes  = 6; #Angle, RPM, SpeedX, Track, TrackPos, gear 
-  nbHiddenNodes = 6*4;
+  nbInputNodes  = 6; # Angle, RPM, SpeedX, Track, TrackPos, Gear 
   nbOutputNodes = 4; #brake, accel, gear, steer
+  nbHiddenNodes = nbInputNodes*nbOutputNodes;
+  
   net = fann_create([nbInputNodes, nbHiddenNodes, nbOutputNodes]);
-
-  ## Define training parameters
-  %parameters = struct( "TrainingAlgorithm", 'incremental', ...
-  %                     "LearningRate", 0.1, ...
-  %                     "ActivationHidden", 'SigmoidSymmetric', ...
-  %                     "ActivationOutput", 'SigmoidSymmetric', ...
-  %                     "TrainErrorFunction", 'linear', ...
-  %                     "Momentum", 0.9);
                        
   parameters = struct( "TrainingAlgorithm", 'rprop', ...
                        "LearningRate", 0.7, ...
@@ -143,21 +129,11 @@ if TRAIN==1
                        "RPropDecreaseFactor", 0.5, ...
                        "RPropDeltaMin", 0.0, ...
                        "RPropDeltaMax", 50.0);
-
-
-  #parameters = struct( "TrainingAlgorithm", 'qprop', ...
-  #                     "LearningRate", 0.7, ...
-  #                     "ActivationHidden", 'SigmoidSymmetric', ...
-  #                     "ActivationOutput", 'SigmoidSymmetric', ...
-  #                     "ActivationSteepnessHidden", 0.5, ...
-  #                     "ActivationSteepnessOutput", 0.5, ...
-  #                    "TrainErrorFunction", 'linear', ...
-  #                    "QuickPropDecay", -0.0001, ...
-  #                    "QuickPropMu", 1.75);
+                       
   fann_set_parameters(net, parameters);
-
-  for i=1:length(data)
+  
   ## formating data from recorded files
+  for i=1:length(data)
     stimulus(i,:) = [data(i).angle, ...
                      data(i).rpm, ...
                      sqrt(data(i).speedX^2+data(i).speedY^2), ...
@@ -171,6 +147,7 @@ if TRAIN==1
                      data(i).steerCmd];
                          
   end
+  
   ## Scale data and target dimensions to the proper range in [-1 1]
   [data,   inScale]    = scale_data(stimulus,0);
   [target, outScale]   = scale_data(expected,0);
@@ -186,6 +163,7 @@ if TRAIN==1
   save("-mat-binary","torcs-scale-params.mat", "scalingParameters");
  
 endif
+
 ## NOTE: the unwind_protect block is necessary to shutdown the simulator
 ##       if any error occurs in the code. DO NOT REMOVE IT!
 unwind_protect
@@ -199,6 +177,7 @@ unwind_protect
   ## - Octave is terminated by CTRL-C on the Command Window.
 	counter = 1;
   
+  # LOAD NEURAL NETWORK
   net = fann_create("torcs.net");
   load("torcs-scale-params.mat");
   
@@ -218,25 +197,25 @@ unwind_protect
            state.track(10),...
            state.trackPos,...
            state.gear];
-     
-    data(:,1) = scale_data(data(:,1),scalingParameters.inScale(1,:));
-    data(:,2) = scale_data(data(:,2),scalingParameters.inScale(2,:));
-    data(:,3) = scale_data(data(:,3),scalingParameters.inScale(3,:));
-    data(:,4) = scale_data(data(:,4),scalingParameters.inScale(4,:));
-    data(:,5) = scale_data(data(:,5),scalingParameters.inScale(5,:));
-    data(:,6) = scale_data(data(:,6),scalingParameters.inScale(6,:));
     
+    # Scale data between -1 and 1. 
+    for i=0:size(data)
+      data(:,i) = scale_data(data(:,i),scalingParameters.inScale(i,:));
+    end
+    
+    # Perform calculation of outputs. 
     res = fann_run(net, data); 
     
+    # Scale data original range. 
     accel = descale_data(res(1), scalingParameters.outScale(1,:));
     brake = descale_data(res(2), scalingParameters.outScale(2,:));
     gear  = descale_data(res(3), scalingParameters.outScale(3,:));
     steer = descale_data(res(4), scalingParameters.outScale(4,:));
     
-    gear
+    # create struct for TORCS. 
     action = struct();
 	  action.steer = steer;
-		action.gear = round(gear)
+		action.gear = round(gear); # the gear can't be a float. 
 		action.accel = accel;
 		action.brake = brake;
 	

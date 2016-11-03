@@ -1,3 +1,40 @@
+## Copyright (c) 2016, Simon Brodeur
+## All rights reserved.
+## 
+## Redistribution and use in source and binary forms, with or without modification,
+## are permitted provided that the following conditions are met:
+## 
+##  - Redistributions of source code must retain the above copyright notice, 
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright notice, 
+##    this list of conditions and the following disclaimer in the documentation 
+##    and/or other materials provided with the distribution.
+##  - Neither the name of Simon Brodeur nor the names of its contributors 
+##    may be used to endorse or promote products derived from this software 
+##    without specific prior written permission.
+## 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+## IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECTP
+## INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+## NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+## OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+## POSSIBILITY OF SUCH DAMAGE.
+##
+
+## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
+## Modified by : Louis-Antoine Larose <louis-antoine.larose@usherbrooke.ca>
+##               Maxime Gagne <maxime.gagne@usherbrooke.ca>
+##               Louis Pelletier <louis.pelletier@usherbrooke.ca>
+
+## Description: Solution DRIVE-FUZZY. 
+
+## Université de Sherbrooke, APP3 S8GIA, A2014
+## Octave 4.0.0
+
 close all
 clear all
 clc
@@ -10,86 +47,89 @@ pkg load fuzzy-logic-toolkit
 source ../torcs_drive.m
 
 ## FLAGS
-SHOW_PLOTS=1;
+SHOW_PLOTS = 1; # This flag enables render of memberships functions.
 
-###############################################
-# Define helper functions here
-###############################################
-## Set to 0 to disable plotting
-
-function show_MFA(fis)
+################################################
+# Function for displaying membership functions #
+################################################
+function show_MF_direction(fis)
     plotmf(fis,'input',1);
     plotmf(fis,'input',2);
     plotmf(fis,'output',1);
-    % gensurf(a,[1 2],1); view([140 37.5]);
+    # gensurf(fis,[1 2],1); view([140 37.5]);
     showrule(fis);
 end
-function show_MFB(fis)
+function show_MF_gear(fis)
     plotmf(fis,'input',1);
     plotmf(fis,'output',1);
+    # gensurf(fis,[1],1); view([140 37.5]);
     showrule(fis);
 end
-
-function show_MFC(fis)
+function show_MF_accel_brake(fis)
     plotmf(fis,'input',1);
     plotmf(fis,'input',2);
     plotmf(fis,'output',1);
     plotmf(fis,'output',2);
+    # gensurf(fis,[1 2],1); view([140 37.5]);
     showrule(fis);
 end
 
-###############################################
-# Define code logic here
-###############################################
-
-function action = drive(state,a,b,c)
+############################################################
+# function Drive                                           #
+#   compute actions to make based on the state of the car. #
+############################################################
+function action = drive(state,direction_fis,gear_fis,accel_brake_fis)
   
+  shift  = 0.5; 
   
-  steer  = evalfis([state.angle, state.trackPos], a, 101, false);
-  shift  = 0.5;
-  shift  = evalfis([state.rpm], b, 101, false);
-  
+  # pretreatment data
   speed  = sqrt((state.speedX^2)+(state.speedY^2));
-  result = evalfis([speed,state.track(10)], c, 101, false); 
   
+  # compute fuzzy values. 
+  steer  = evalfis([state.angle, state.trackPos], direction_fis, 101, false);
+  shift  = evalfis([state.rpm], gear_fis, 101, false);
+  result = evalfis([speed,state.track(10)], accel_brake_fis, 101, false); 
+  
+  # NNET will fail if the fuzzy creates NAN (not a number)
+  # These IFs are for debugging purposes. 
+  # When printed out on consol, the developpers knows something when wrong
+  # Essentially, this occurs when the car goes off the road. 
   if(isnan(steer))
     disp('steer is NAN');
-    disp(state.track(10));
-    disp(steer);
   end
   if(isnan(shift))
     disp('shift is NAN');
-    disp(state.rpm);
   end
   if(isnan(speed))
-    disp('steer is NAN');
-    disp(state.track(10));
-    disp(state.speed);
+    disp('steer is NAN');    
   end
   if(isnan(result(1)))
     disp('accel is NAN');
-    disp(state.track(10));
-    disp(result(1));
   end
   if(isnan(result(2)))
     disp('brake is NAN');
-    disp(state.track(10));
-    disp(result(2));
   end
   
+  # The fuzzy logic does not compute a gear. 
+  # It computes when should we shift the gear. 
+  # if shift is bellow 0.5, we downshift.
+  # if shift is over 0.5, we upshift.
+  # if shift is egal 0.5, we keep the current gear. 
   gear = state.gear;
-  if gear == 0
+  if gear == 0 # From neutral to first gear. 
     gear = 1;
-  elseif(shift > 0.5 && gear < 6)
+  elseif(shift > 0.5 && gear < 6) # up shift
     gear++;
-  elseif(shift < 0.5 && gear > 1)
+  elseif(shift < 0.5 && gear > 1) # down shift. 
     gear--;
   endif
- 
+  
+  # Returns a struct.
   action.accel  = result(1);
   action.brake  = result(2);
   action.gear   = gear;
   action.steer  = steer;
+  
 endfunction
 
 ## NOTE: the unwind_protect block is necessary to shutdown the simulator
@@ -100,19 +140,25 @@ unwind_protect
   ## NOTE: This function is defined in the file torcs_drive.m
   startSimulator(mode='gui');
 
-  ## FUZZY LOGIC
-  a=readfis('racecarctrl.fis'); 
-  b=readfis('speedcarctrl.fis');
-  c=readfis('accelnbrakectrl.fis'); 
-  #show_MFA(a);
-  #show_MFB(b);
-  #show_MFC(c);
+  ## LOAD FUZZY LOGIC
+  direction_fis = readfis('direction_ctrl.fis'); 
+  gear_fis =readfis('gear_ctrl.fis');
+  accel_brake_fis =readfis('accel_brake_ctrl.fis'); 
+  
+  ## DISPLAY MEMBERSHIP FUNCTION. 
+  if (SHOW_PLOTS == true)
+    #show_MF_direction(direction_fis);
+    show_MF_gear(gear_fis);
+    #show_MF_accel_brake(accel_brake_fis);
+  end
+  
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.
   ## - Simulator is shutdown using the menu (press ESC during the simulation).
   ## - Octave is terminated by CTRL-C on the Command Window.
 	counter = 1;
 	lastAction = struct();
+  
 	while 1
     ## Grab the car state from the simulator.
     ## NOTE: This function is defined in the file torcs_drive.m
@@ -126,7 +172,7 @@ unwind_protect
     ## Use STATE_DROP_RATE = 1 to disable state dropping.
 		STATE_DROP_RATE = 2;
 		if mod(counter,STATE_DROP_RATE) == 0 || counter == 1
-      action = drive(state,a,b,c);
+      action = drive(state,direction_fis,gear_fis,accel_brake_fis);
 		else
 			action = lastAction;
 		endif

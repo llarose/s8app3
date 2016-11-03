@@ -1,0 +1,5 @@
+data_dev:
+   this folder contains .mat from runs made with fuzzy logic when it first work well with nnet.  
+
+data_validation:
+   this folder contains .mat from runs made with latest fuzzy logic used for the validation. 
