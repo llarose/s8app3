@@ -138,7 +138,7 @@ unwind_protect
   
   ## Connect to simulation server.
   ## NOTE: This function is defined in the file torcs_drive.m
-  startSimulator(mode='gui');
+  startSimulator(mode='nogui');
 
   ## LOAD FUZZY LOGIC
   direction_fis = readfis('direction_ctrl.fis'); 

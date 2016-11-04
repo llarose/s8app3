@@ -48,7 +48,7 @@ pkg load octave-fann
 source ../torcs_drive.m
 
 ## FLAGS
-TRAIN = 0; # This flag enables the training. 
+TRAIN = 1; # This flag enables the training. 
 
 ######################
 # Utilitary function #
@@ -108,12 +108,12 @@ endfunction
 ###############################################
 
 if TRAIN==1
-  ## Load trained neural networt
+  ## Load trained neural network
   load 'dataset/all.mat';
 
   ## Create neural network
   nbInputNodes  = 6; # Angle, RPM, SpeedX, Track, TrackPos, Gear 
-  nbOutputNodes = 4; #brake, accel, gear, steer
+  nbOutputNodes = 4; # Brake, accel, gear, steer
   nbHiddenNodes = nbInputNodes*nbOutputNodes;
   
   net = fann_create([nbInputNodes, nbHiddenNodes, nbOutputNodes]);
@@ -198,8 +198,7 @@ unwind_protect
            state.trackPos,...
            state.gear];
     
-    # Scale data between -1 and 1. 
-    for i=0:size(data)
+    for i=1:length(data)
       data(:,i) = scale_data(data(:,i),scalingParameters.inScale(i,:));
     end
     
