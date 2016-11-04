@@ -32,7 +32,7 @@
     <attstr name="starting order" val="drivers list"/>
     <attstr name="restart" val="no"/>
     <attstr name="abort" val="yes"/>
-    <attnum name="laps" val="1"/>
+    <attnum name="laps" val="3"/>
     <attstr name="display mode" val="results only"/>
     <section name="Starting Grid">
       <attnum name="rows" val="2"/>

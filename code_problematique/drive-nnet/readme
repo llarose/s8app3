@@ -1,0 +1,15 @@
+Louis-Antoine Larose
+Maxime Gagne
+Louis Pelletier
+Universite de Sherbrooke A2016
+
+
+
+NNET
+  - This nnet learns the behavious recorded by the fuzzy logic.
+  - Makedataset.m will concatains all .mat inside data into one .mat file under dataset. 
+  - torcs.net and torcs-scale-params.mat are the neural net files. 
+
+
+ 
+
