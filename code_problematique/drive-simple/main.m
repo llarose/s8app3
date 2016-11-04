@@ -195,8 +195,6 @@ unwind_protect
   ## Connect to simulation server.
   ## NOTE: This function is defined in the file torcs_drive.m
   startSimulator(mode='gui');
-  
-  showrule(a);
  
   ## Loop indefinitely, or until:
   ## - The maximum number of laps is reached in the simulation.

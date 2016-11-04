@@ -138,7 +138,7 @@ unwind_protect
   
   ## Connect to simulation server.
   ## NOTE: This function is defined in the file torcs_drive.m
-  startSimulator(mode='nogui');
+  startSimulator(mode='gui');
 
   ## LOAD FUZZY LOGIC
   direction_fis = readfis('direction_ctrl.fis'); 
@@ -148,7 +148,7 @@ unwind_protect
   ## DISPLAY MEMBERSHIP FUNCTION. 
   if (SHOW_PLOTS == true)
     #show_MF_direction(direction_fis);
-    show_MF_gear(gear_fis);
+    #show_MF_gear(gear_fis);
     #show_MF_accel_brake(accel_brake_fis);
   end
   
