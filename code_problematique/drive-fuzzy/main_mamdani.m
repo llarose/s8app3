@@ -27,7 +27,7 @@
 
 ## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
 ## Modified by : Louis-Antoine Larose <louis-antoine.larose@usherbrooke.ca>
-##               Maxime Gagne <maxime.gagne@usherbrooke.ca>
+##               Maxime Gagne <maxime.gagne4@usherbrooke.ca>
 ##               Louis Pelletier <louis.pelletier@usherbrooke.ca>
 
 ## Description: Solution DRIVE-FUZZY. 
@@ -141,15 +141,15 @@ unwind_protect
   startSimulator(mode='gui');
 
   ## LOAD FUZZY LOGIC
-  direction_fis = readfis('direction_ctrl.fis'); 
-  gear_fis =readfis('gear_ctrl.fis');
-  accel_brake_fis =readfis('accel_brake_ctrl.fis'); 
+  direction_fis = readfis('direction_ctrl_mamdani.fis'); 
+  gear_fis =readfis('gear_ctrl_mamdani.fis');
+  accel_brake_fis =readfis('accel_brake_ctrl_mamdani.fis'); 
   
   ## DISPLAY MEMBERSHIP FUNCTION. 
   if (SHOW_PLOTS == true)
-    #show_MF_direction(direction_fis);
-    #show_MF_gear(gear_fis);
-    #show_MF_accel_brake(accel_brake_fis);
+    show_MF_direction(direction_fis);
+    show_MF_gear(gear_fis);
+    show_MF_accel_brake(accel_brake_fis);
   end
   
   ## Loop indefinitely, or until:

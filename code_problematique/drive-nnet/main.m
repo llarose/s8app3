@@ -28,7 +28,7 @@
 ## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
 
 ## Modified by : Louis-Antoine Larose <louis-antoine.larose@usherbrooke.ca>
-##               Maxime Gagne <maxime.gagne@usherbrooke.ca>
+##               Maxime Gagne <maxime.gagne4@usherbrooke.ca>
 ##               Louis Pelletier <louis.pelletier@usherbrooke.ca>
 
 ## Description: Solution DRIVE- NNET

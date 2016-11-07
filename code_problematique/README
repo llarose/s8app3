@@ -1,45 +1,36 @@
-## Copyright (c) 2014, Simon Brodeur
-## All rights reserved.
-## 
-## Redistribution and use in source and binary forms, with or without modification,
-## are permitted provided that the following conditions are met:
-## 
-##  - Redistributions of source code must retain the above copyright notice, 
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright notice, 
-##    this list of conditions and the following disclaimer in the documentation 
-##    and/or other materials provided with the distribution.
-##  - Neither the name of Simon Brodeur nor the names of its contributors 
-##    may be used to endorse or promote products derived from this software 
-##    without specific prior written permission.
-## 
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-## IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-## INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-## NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
-## OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-## POSSIBILITY OF SUCH DAMAGE.
-##
+------------------------------
+S8 - APP3 - P14 -
+------------------------------
+Date : 2016-11-07
+Cours : GIA792 - I. A. Bio-inspirée - S8
+UNIVERSITÉ DE SHERBROOKE
 
-## Author: Simon Brodeur <simon.brodeur@usherbrooke.ca>
+Étudiants : 
+       Louis Pelletier
+       Louis-Antoine Larose
+       Maxime Gagné
+ 
+Programme construit sur la base fourni par Simon Brodeur. 
+  
+Les dossiers suivants contiennent chacun une partie différente de la résolution problématique. 
+Chaque section contient un fichier 'main' à éxécuter 
 
-## !!! IMPORTANT NOTICE !!!
-## The files torcs_drive.m and torcs_opt.m provide the interface with the TORCS simulator. Do not edit these files!
+Section 
+	1) drive-fuzzy
+	Description: Permet de faire un contrôle de la voiture par logique floue.
+	Exécution: Pour éxécuter le contrôle de la voiture par logique floue, ouvrir 'main_mamdani.m'  ou 'main_sugeno.m' et l'éxécuter sous Octave dans la machine virtuelle fournie dans le cadre de l'app3 du cours d'intelligence artificiel.
 
-To launch a simple control example with graphical display (console mode is also possible), 
-analyze and execute this file with Octave:
-- drive-simple/main.m
-You can later use this example as a template to build a neural network and fuzzy logic controller.
+	2) drive-nnet
+	Description: Permet de faire une contrôle de la voiture par réseau de neuronnes
+	Exécution: Pour éxécuter le contrôle de la voiture par réseau de neuronnes, ouvrir 'main.m' et l'éxécuter sous Octave dans la machine virtuelle fournie dans le cadre de l'app3 du cours d'intelligence artificiel.
 
-To record the car state on several tracks when the car is driven by a 
-bot (manual control is also possible), analyze and execute this file with Octave:
-- record/main.m
-An example of car state data can be visualized with the following script:
-- record/showData.m
-A dataset providing training data for supervised learning can be then created with the following script:
-- record/makeDataset.m
+  Pour exécuter l'apprentissage, il faut que la variable "TRAIN" soit à "1"
+  
+  
+	3) optimise-ga
+	Description: Permet de faire une maximisation de la vitesse de la voiture ainsi qu'une minimisation de la consommation d'essence de la voiture.
+	Exécution: Pour éxécuter l'optimination des différents mode, ouvrir 'main.m' et l'éxécuter sous Octave dans la machine virtuelle fournie dans le cadre de l'app3 du cours d'intelligence artificiel. 
 
+	Pour exécuter la maximisation de la vitesse, il faut que la variable "MODE_SPORT" soit à "1" et "MODE_ECO" à "0".
+
+	Pour le mode économie de carburant, il faut que la variable "MODE_SPORT" soit à "0" et "MODE_ECO" à 1.
