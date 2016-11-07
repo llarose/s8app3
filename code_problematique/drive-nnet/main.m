@@ -48,7 +48,7 @@ pkg load octave-fann
 source ../torcs_drive.m
 
 ## FLAGS
-TRAIN = 1; # This flag enables the training. 
+TRAIN = 0; # This flag enables the training. 
 
 ######################
 # Utilitary function #
