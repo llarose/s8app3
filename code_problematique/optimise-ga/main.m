@@ -32,11 +32,13 @@
 
 ## Description: Algorithme génétique pour l'optimisation de la vitesse et de la consommation d'essence. 
 
-## Université de Sherbrooke, APP3 S8GIA, A2014
+## Université de Sherbrooke, APP3 S8GIA, A2016
 ## Octave 4.0.0
 
 source ../torcs_opt.m
 
+## Pour utiliser le mode sport, mettre MODE_SPORT a 1 et l'autre a 0. 
+## Pour utiliser le mode eco, mettre MODE_ECO a 1 et l'autre a 0.
 MODE_SPORT = 1;
 MODE_ECO = 0;
 
@@ -60,43 +62,18 @@ MODE_ECO = 0;
 ## - FITNESS, Pour le mode sport, on optimise la vitesse maximale et pour le mode économique on minimise la consommation
 ##            d'essence
 ##
-function fitness = evaluateFitness(maxSpeed, fuelConsumption, cvalues, mode)
-  ratios2e = cvalues(1);
-  ratios3e = cvalues(2);
-  ratios4e = cvalues(3);
-  ratios5e = cvalues(4);
-  ratios6e = cvalues(5);
-  ratiosdiff = cvalues(6);
-  angleAv = cvalues(7);
-  angleArr = cvalues(8);
+function fitness = evaluateFitness(maxSpeed, fuelConsumption, dist, mode)
+
   fitness = 0;
   
   if mode == 1
-    if (ratios2e > max(cvalues(2:5)))
-      fitness = 1;
-    endif;
-    
-    if(ratios6e < min(cvalues(1:4)))
-      fitness = 1;
-    endif;
-    
-    if(angleArr > angleAv)
-      fitness = 1;
-    endif;
-    
-    if(ratiosdiff < 2* ratios2e)
-      fitness = 1;
-    endif;
-    
-    if (fitness != 1)
-      fitness = maxSpeed;
-    endif;
-    
+    fitness = maxSpeed;
   elseif mode == 0
-    fitness = 1/(fuelConsumption);
-    if(min(cvalues(1:5)) < 0.001)
-      fitness = 1;
-    endif;
+    fitness = 1/(fuelConsumption/(dist/1000));  ##On veut la consommation en L/Km
+  endif;
+  
+  if(maxSpeed < 100 && dist < 1000) ##On s'assure d'avoir parcouru au moins 1km 
+      fitness = 1;                  ##et d'avoir atteint 100 km/h
   endif;
 endfunction
 
@@ -156,6 +133,27 @@ endfunction
 ##
 function bvalues = encodeIndividual(cvalues, nbits);
 	      NB_PARAMS = length(cvalues);
+        if(cvalues(1) > 0.3)
+          cvalues(1) = (0 + 0.3) * rand(1,1); ## On veut que les rations soient croissant
+        endif;
+        if(cvalues(2) < cvalues(1) || cvalues(2) > 0.35)
+          cvalues(2) = (0 + 0.35) * rand(1,1);
+        endif;
+        if(cvalues(3) < cvalues(2) || cvalues(3) > 0.4)
+          cvalues(3) = (0 + 0.4) * rand(1,1);
+        endif;
+        if(cvalues(4) < cvalues(3) || cvalues(4) > 0.45)
+          cvalues(4) = (0 + 0.45) * rand(1,1);
+        endif;
+        if(cvalues(5) < cvalues(4) || cvalues(5) > 0.5)
+          cvalues(5) = (0 + 0.5) * rand(1,1);
+        endif;
+        if(cvalues(7) > 0.5)
+          cvalues(7) = (0 + 0.5) * rand(1,1);
+        endif;
+        if(cvalues(8) > 0.5)
+          cvalues(8) = (0 + 0.5) * rand(1,1);
+        endif;
         bvalues = ufloat2bin(cvalues, nbits);
         bvalues = reshape(bvalues', 1, NB_PARAMS*nbits);
 endfunction
@@ -314,14 +312,14 @@ startSimulator(mode='nogui');
 
 unwind_protect
   ## Paramètres pour l'encodage de la population
-  popsize = 60;
+  popsize = 40;
   nbits=16;
   population = initializePopulation(NB_PARAMS,popsize,nbits);
   
   ## Paramètres pour l'optimisation
-  numGenerations = 60;
-  mutationProb = 0.015;
-  crossoverProb = 0.85;
+  numGenerations = 40;
+  mutationProb = 0.005;
+  crossoverProb = 0.6;
   bestIndividual = [];
   bestIndividualFitness = -1e10;
   bestGeneration = 1;
@@ -350,17 +348,10 @@ unwind_protect
    
       ## Calcul de la fitness
       if MODE_SPORT
-        fitness(p) = evaluateFitness(result.topspeed, result.fuelUsed, cvalues, 1);
+        fitness(p) = evaluateFitness(result.topspeed, result.fuelUsed, result.distraced, 1);
       elseif MODE_ECO
-        fitness(p) = evaluateFitness(result.topspeed, result.fuelUsed, cvalues, 0);
+        fitness(p) = evaluateFitness(result.topspeed, result.fuelUsed, result.distraced, 0);
       endif;
-      
-      # Enregistrement des meilleures valeurs
-      if(bestSpeed < result.topspeed)
-        bestSpeed = result.topspeed;
-      elseif (bestFuel > result.fuelUsed && result.fuelUsed != 0)
-        bestFuel = result.fuelUsed;
-      endif; 
     endfor
   
     ## Conserver le meilleur individu à travers toutes les générations
@@ -416,7 +407,11 @@ n = 1:numGenerations;
 plot (n, maxFitnessRecord, '-r', ...
       n, overallMaxFitnessRecord, '-b', ...
       n, avgMaxFitnessRecord, '--k');
-title('Valeur de la fitness à travers les générations');
+if MODE_SPORT
+title('Valeur de la fitness à travers les générations pour mode sport');
+elseif MODE_ECO
+title('Valeur de la fitness à travers les générations pour mode economique');
+endif;
 xlabel('Générations');
 ylabel('Valeur de la fitness');
 legend({'Max génération','Max global','Moyenne de la génération'}, 'location', 'southeast');
@@ -428,8 +423,15 @@ legend('2e','3e','4e','5e','6e','diff','av','arr');
 
 ## Correspond à la meilleure vitesse et la meilleure consommation d'essence
 ## obtenue à travers toute les générations.
-bestSpeed
-bestFuel
+disp('##################################################');
+if MODE_SPORT
+disp('Fastest speed over 1km (Km/h):');
+disp(overallMaxFitnessRecord(numGenerations));
+elseif MODE_ECO
+disp('Least fuel used over 1km (L/Km):');
+disp(1/overallMaxFitnessRecord(numGenerations));
+endif;
+disp('##################################################');
   
 unwind_protect_cleanup
 	% Close the simulator
