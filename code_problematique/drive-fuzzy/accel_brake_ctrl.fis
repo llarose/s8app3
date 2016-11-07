@@ -7,7 +7,7 @@ NumOutputs=2
 NumRules=9
 AndMethod='min'
 OrMethod='max'
-ImpMethod='prod'
+ImpMethod='min'
 AggMethod='max'
 DefuzzMethod='centroid'
 

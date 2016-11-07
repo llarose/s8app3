@@ -7,7 +7,7 @@ NumOutputs=1
 NumRules=9
 AndMethod='min'
 OrMethod='max'
-ImpMethod='prod'
+ImpMethod='min'
 AggMethod='max'
 DefuzzMethod='centroid'
 
@@ -15,7 +15,7 @@ DefuzzMethod='centroid'
 Name='angle'
 Range=[-3.1416 3.1416]
 NumMFs=3
-MF1='Left:'trapmf',[-4 -3.1416 -0.2 0]
+MF1='Left':'trapmf',[-4 -3.1416 -0.2 0]
 MF2='Center':'trimf',[-0.2 0 0.2]
 MF3='Right':'trapmf',[0 0.2 3.1416 4]
 
