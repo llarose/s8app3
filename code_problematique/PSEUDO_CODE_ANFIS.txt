@@ -1,0 +1,62 @@
+------------------------------
+S8 - APP3 - P14 -
+------------------------------
+Date : 2016-11-07
+Cours : GIA792 - I. A. Bio-inspirée - S8
+UNIVERSITÉ DE SHERBROOKE
+
+Étudiants : 
+       Louis Pelletier
+       Louis-Antoine Larose
+       Maxime Gagné
+ DESCRIPTION: 
+ Pseudo code pour une implémentation ANFIS. 
+
+FUNCTION SYSTÈME ANFIS(ENTRÉES)
+	DÉFINIR CHAQUE POIDS DE CHAQUE ENTRÉE: K0 à Kn
+	X1 = ENTRÉES                    // LAYER 1
+	Y2 = FUZZIFICATION(X1)          // LAYER 2
+	Y3 = RULES(Y2)                  // LAYER 3
+	Y4 = NORMALISATION(Y3)          // LAYER 4
+	Y5 = DEFUZZIFICATION(Y4, X1, K) // LAYER 5
+	Y  = SOMMATION DE NEURONNE(Y5)  // LAYER 6
+	retour Y
+
+FUNCTION FUZZIFICATION(X1)
+	POUR CHAQUE ENTRÉES DU SYSTÈME: X10 à X1n
+		Y2i = BELL_ACTIVATION_CURVE(X1i)
+	// Y2 est la valeur d'appartenance à la fonction d'activation gausienne. 
+	retour Y2
+
+FUNCTION RULES(X2)
+	POUR CHAQUE SORTIE DE LA FUZZIFICATION: X20 à X2n
+		Y3i = PRODUIT de X2i à X2n
+	// Y3 est la valeur d'activation
+	retour Y3
+
+FUNCTION NORMALISATION(X3)
+	POUR CHAQUE SORTIE DES REGLES : X30 à X3n
+		Y4i = X3i/(SOMME de X3i à X3n) 
+	// Y4 est la valeur d'activation normalisé
+	retour Y4
+
+FUNCTION DE DEFUZZIFICATION(X4, X1, K1)
+	facteur = FACTEUR PONDÉRÉ DE L'ENTREE(X1,K1)
+	POUR CHAQUE SORTIE DE LA NORMALISATION : x40 à x4n
+		Y5i = X4i*facteur
+	//Y5 est la valeur pondéré d'une règle. 
+	retour Y5
+
+FUNCTION DE SOMMATION DE NEURONNE(X5) 
+	retour SOMMATION DE TOUTES LES X5. 
+
+FUNCTION BELL_ACTIVATION_CURVE(x)
+	a = center of bell curve
+	b = width of bell curve
+	c = slope of bell curve
+	retour 1/(1+((x-a)/c)^(2*b))
+
+FACTEUR PONDÉRÉ DE L'ENTREE(X,K)
+	POUR CHAQUE ELEMENT DE X CORRESPOND UN ELEMENT K
+		somme = Xi*Ki
+	retour somme

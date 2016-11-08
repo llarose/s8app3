@@ -26,7 +26,6 @@ Section
 
   Pour exécuter l'apprentissage, il faut que la variable "TRAIN" soit à "1"
   
-  
 	3) optimise-ga
 	Description: Permet de faire une maximisation de la vitesse de la voiture ainsi qu'une minimisation de la consommation d'essence de la voiture.
 	Exécution: Pour éxécuter l'optimination des différents mode, ouvrir 'main.m' et l'éxécuter sous Octave dans la machine virtuelle fournie dans le cadre de l'app3 du cours d'intelligence artificiel. 
@@ -34,3 +33,7 @@ Section
 	Pour exécuter la maximisation de la vitesse, il faut que la variable "MODE_SPORT" soit à "1" et "MODE_ECO" à "0".
 
 	Pour le mode économie de carburant, il faut que la variable "MODE_SPORT" soit à "0" et "MODE_ECO" à 1.
+
+	4) Système ANFIS
+	Le pseudo code pour une implémentation ANFIS est disponible dans le fichier PSEUDO_CODE_ANFIS.txt
+	Ce fichier ne s'exécute pas. 
